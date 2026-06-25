@@ -40,18 +40,57 @@ async function run() {
     const requestCollection = database.collection("requests")
     const commentCollection = database.collection("comments")
     const paymentCollection = database.collection("payments")
-    // payment related api
+    const planCollection=database.collection("plans")
 
+
+
+    app.get("/api/payments", async (req, res) => {
+      try {
+        const { lawyerId, clientId, email } = req.query; // কুয়েরি থেকে ইমেইল নিন
+        let query = {};
+        if (email) {
+          query.$or = [
+            { clientEmail: email },
+            { customerEmail: email }
+          ];
+        }
+        if (lawyerId) {
+          query.lawyerId = lawyerId;
+        }
+        if (clientId) {
+          query.clientId = clientId;
+        }
+
+        const result = await paymentCollection.find(query).toArray();
+        console.log("Filtered Results:", result);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error fetching payments", error });
+      }
+    });
 
     app.post("/api/payments", async (req, res) => { 
       const payment = req.body;
-      cosnt newPayment = {
+      const newPayment = {
         ...payment,
         createAt: new Date()
       }
       const result = await paymentCollection.insertOne(newPayment);
       res.send(result);
     })
+
+    // plans releted api
+
+    app.get("/api/plans", async (req, res) => { 
+      const query = {}
+      if (req.query.plan_id) { 
+        query.id=req.query.plan_id
+      }
+      const plan = await planCollection.findOne(query);
+      res.send(plan);
+    })
+
+
 
     // comments related api
     app.delete("/api/comments/:id", async (req, res) => {
@@ -108,25 +147,7 @@ async function run() {
     });
 
     // job Collection related api
-    app.delete("/api/jobs/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-
-        const result = await jobCollection.deleteOne({
-          _id: new ObjectId(id),
-        });
-
-        res.send({
-          success: true,
-          deletedCount: result.deletedCount,
-        });
-      } catch (error) {
-        res.status(500).send({
-          success: false,
-          error: error.message,
-        });
-      }
-    });
+   
     app.delete("/api/jobs/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -154,7 +175,6 @@ async function run() {
       if (req.query.companyId) query.companyId = req.query.companyId;
       if (req.query.status) query.status = req.query.status;
       if (req.query.lawyerId) query.lawyerId = req.query.lawyerId;
-      console.log("Searching for lawyerId:", query.lawyerId);
       if (req.query.clientId) query.clientId = req.query.clientId;
 
       try {
@@ -205,11 +225,11 @@ async function run() {
     })
 
 
-    app.get('/api/hires', async (req, res) => {
-      const cursor = hireCollection.find();
-      const result = await cursor.toArray();
-      res.send(result)
-    })
+    // app.get('/api/hires', async (req, res) => {
+    //   const cursor = hireCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result)
+    // })
 
     app.get('/api/hires/:id', async (req, res) => {
       const id = req.params.id;
