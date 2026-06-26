@@ -30,44 +30,47 @@ async function run() {
 
 
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const database = client.db("legalEase");
     const jobCollection = database.collection("jobs");
     const companyCollection = database.collection("companies")
-    const usersCollection = database.collection("user")
+    const usersCollection = database.collection("users")
     const hireCollection = database.collection("hires")
     const requestCollection = database.collection("requests")
     const commentCollection = database.collection("comments")
     const paymentCollection = database.collection("payments")
     const planCollection=database.collection("plans")
+    // user related api
 
 
 
+
+    // app.get('api/users', async (req, res) => { 
+    //   const cursor = usersCollection.find().skip(6);
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // })
+
+// payment related api
     app.get("/api/payments", async (req, res) => {
       try {
-        const { lawyerId, clientId, email } = req.query; // কুয়েরি থেকে ইমেইল নিন
+        const { email, lawyerId, clientId } = req.query;
         let query = {};
-        if (email) {
-          query.$or = [
-            { clientEmail: email },
-            { customerEmail: email }
-          ];
-        }
-        if (lawyerId) {
-          query.lawyerId = lawyerId;
-        }
-        if (clientId) {
-          query.clientId = clientId;
-        }
+
+        if (email) query.$or = [{ clientEmail: email }, { customerEmail: email }];
+        if (lawyerId) query.lawyerId = lawyerId;
+        if (clientId) query.clientId = clientId;
 
         const result = await paymentCollection.find(query).toArray();
-        console.log("Filtered Results:", result);
+
         res.send(result);
       } catch (error) {
-        res.status(500).send({ message: "Error fetching payments", error });
+        res.status(500).send({ message: "Error" });
       }
     });
+
+
 
     app.post("/api/payments", async (req, res) => { 
       const payment = req.body;
@@ -252,6 +255,9 @@ async function run() {
       if (req.query.userId) {
         query.userId = req.query.userId
       }
+      if (req.query.userEmail) {
+        query.userEmail = req.query.userEmail
+      }
       const cursor = hireCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
@@ -402,7 +408,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
