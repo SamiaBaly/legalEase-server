@@ -41,23 +41,14 @@ async function run() {
     const commentCollection = database.collection("comments")
     const paymentCollection = database.collection("payments")
     const planCollection=database.collection("plans")
-    // user related api
+  
 
+    // payment related api
 
-
-
-    // app.get('api/users', async (req, res) => { 
-    //   const cursor = usersCollection.find().skip(6);
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // })
-
-// payment related api
     app.get("/api/payments", async (req, res) => {
       try {
         const { email, lawyerId, clientId } = req.query;
         let query = {};
-
         if (email) query.$or = [{ clientEmail: email }, { customerEmail: email }];
         if (lawyerId) query.lawyerId = lawyerId;
         if (clientId) query.clientId = clientId;
